@@ -81,7 +81,7 @@ def prediction_func(pq_file):
     ORD2SIGN = train[['sign_ord', 'sign']].set_index('sign_ord').squeeze().to_dict()
 
     ## load data from output parquet
-    xyz_np = load_relevant_data_subset(pq_file)
+    xyz_np = load_relevant_data_subset(pq_path=pq_file)
     prediction = prediction_fn(inputs=xyz_np)
     sign = prediction['outputs'].argmax()
     return ORD2SIGN[sign]
@@ -89,7 +89,7 @@ def prediction_func(pq_file):
 
 
 # For webcam input:
-def do_capture_loop(xyz,pq_file):
+def do_capture_loop(xyz,pq_file=None):
     all_landmarks = []
     cap = cv2.VideoCapture(1)
     with mp_holistic.Holistic(
@@ -130,10 +130,12 @@ def do_capture_loop(xyz,pq_file):
                 mp_holistic.POSE_CONNECTIONS,
                 landmark_drawing_spec=mp_drawing_styles
                 .get_default_pose_landmarks_style())
-        #    Flip the image horizontally for a selfie-view display.
-            text = prediction_func(pq_file)
+            #Flip the image horizontally for a selfie-view display.
+            
+            # text = prediction_func(pq_file)
             # print(text)
-            draw_predictions(image,text)
+            # print(text)
+            # draw_predictions(image,text)
             # cv2.rectangle(frame, (x, y - text_height - 5), (x + text_width, y), (0, 0, 0), -1)
             # cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
@@ -173,10 +175,13 @@ def draw_predictions(image,text):
 if __name__ == "__main__":
     pq_file_sample = "train_landmark_files/16069/100015657.parquet"
     xyz = pd.read_parquet(pq_file_sample)
+    # pq_file = pd.read_parquet('output.parquet')
 
-
-    landmarks = do_capture_loop(xyz,'output.parquet')
+    landmarks = do_capture_loop(xyz)
     pd.concat(landmarks).reset_index(drop=True).to_parquet('output.parquet')
+    
+    
+    
     # print(prediction_func('output.parquet'))
 
     
