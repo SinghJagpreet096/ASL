@@ -53,18 +53,16 @@ def create_frame_landmark_df(results, frame, xyz):
 
 
 ## load data from parguet 
-def load_relevant_data_subset(pq_path):
-    """
-    loads relevent data from parquet
-    """
+def load_relevant_data_subset(data):
     data_columns = ['x', 'y', 'z']
-    data = pd.read_parquet(pq_path, columns=data_columns)
+    data = data[data_columns]
+    # data = pd.read_parquet(pq_path, columns=data_columns)
     n_frames = int(len(data) / ROWS_PER_FRAME)
     data = data.values.reshape(n_frames, ROWS_PER_FRAME, len(data_columns))
     return data.astype(np.float32)
 
 
-def prediction_func(pq_file):
+def prediction_func(data):
 
     ## defining the model 
     interpreter = tf.lite.Interpreter("model.tflite")
@@ -81,7 +79,7 @@ def prediction_func(pq_file):
     ORD2SIGN = train[['sign_ord', 'sign']].set_index('sign_ord').squeeze().to_dict()
 
     ## load data from output parquet
-    xyz_np = load_relevant_data_subset(pq_path=pq_file)
+    xyz_np = load_relevant_data_subset(data)
     prediction = prediction_fn(inputs=xyz_np)
     sign = prediction['outputs'].argmax()
     return ORD2SIGN[sign]
@@ -90,7 +88,7 @@ def prediction_func(pq_file):
 
 # For webcam input:
 def do_capture_loop(xyz,pq_file=None):
-    all_landmarks = []
+    all_landmarks = pd.DataFrame()
     cap = cv2.VideoCapture(1)
     with mp_holistic.Holistic(
         min_detection_confidence=0.5,
@@ -112,7 +110,11 @@ def do_capture_loop(xyz,pq_file=None):
 
         ## create landmarks dataframe from results
             landmarks = create_frame_landmark_df(results,frame,xyz)
-            all_landmarks.append(landmarks)
+            # all_landmarks.append(landmarks)
+            all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
+            text = prediction_func(all_landmarks)
+            draw_predictions(image,text)
+
         
         # Draw landmark annotation on the image.
             image.flags.writeable = True
@@ -139,12 +141,12 @@ def do_capture_loop(xyz,pq_file=None):
             # cv2.rectangle(frame, (x, y - text_height - 5), (x + text_width, y), (0, 0, 0), -1)
             # cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-            cv2.imshow('MediaPipe Holistic', cv2.flip(image, 1))
+            cv2.imshow('MediaPipe Holistic',image)# cv2.flip(image, 1))
 
             if cv2.waitKey(5) & 0xFF == 27:
                 break
     # cap.release()
-    return all_landmarks
+    return pd.concat(all_landmarks).reset_index(drop=True), text
 def draw_predictions(image,text):
     # Reading an image in default mode
     # image = cv2.imread(path)
@@ -175,10 +177,16 @@ def draw_predictions(image,text):
 if __name__ == "__main__":
     pq_file_sample = "train_landmark_files/16069/100015657.parquet"
     xyz = pd.read_parquet(pq_file_sample)
-    pq_file = pd.read_parquet('output.parquet')
+    # pq_file = pd.read_parquet('output.parquet')
 
-    landmarks = do_capture_loop(xyz)
-    pd.concat(landmarks).reset_index(drop=True).to_parquet('output.parquet')
+    data, text= do_capture_loop(xyz)
+    print(text)
+    
+    # text = prediction_func(data)
+    # draw_predictions(image=image,text=text)
+
+    # pd.concat(landmarks).reset_index(drop=True).to_parquet('output.parquet')
+
 
     
     
@@ -188,6 +196,7 @@ if __name__ == "__main__":
     
 
     
+
 
 
 
