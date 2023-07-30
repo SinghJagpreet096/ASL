@@ -5,20 +5,9 @@ import numpy as np
 # import nbformat
 import tensorflow as tf
 
-
-## variables for openCV
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_holistic = mp.solutions.holistic
-
-## defining the model 
-interpreter = tf.lite.Interpreter("src/model.tflite")
-found_signatures = list(interpreter.get_signature_list().keys())
-prediction_fn = interpreter.get_signature_runner("serving_default")
-
-# Add ordinally Encoded Sign (assign number to each sign name)\
-train = pd.read_csv('src/data/train.csv.zip')
-train['sign_ord'] = train['sign'].astype('category').cat.codes
 
 ROWS_PER_FRAME = 543  # number of landmarks per frame
 
@@ -75,11 +64,21 @@ def load_relevant_data_subset(data):
 
 def prediction_func(data):
 
+    ## defining the model 
+    interpreter = tf.lite.Interpreter("model.tflite")
+    found_signatures = list(interpreter.get_signature_list().keys())
+    prediction_fn = interpreter.get_signature_runner("serving_default")
+
+    
+    # Add ordinally Encoded Sign (assign number to each sign name)\
+    train = pd.read_csv('train.csv.zip')
+    train['sign_ord'] = train['sign'].astype('category').cat.codes
+
     # Dictionaries to translate sign <-> ordinal encoded sign
     SIGN2ORD = train[['sign', 'sign_ord']].set_index('sign').squeeze().to_dict()
     ORD2SIGN = train[['sign_ord', 'sign']].set_index('sign_ord').squeeze().to_dict()
 
-    ## preprocessing of data for the model
+    ## load data from output parquet
     xyz_np = load_relevant_data_subset(data)
     prediction = prediction_fn(inputs=xyz_np)
     sign = prediction['outputs'].argmax()
@@ -112,15 +111,8 @@ def do_capture_loop(xyz,pq_file=None):
         ## create landmarks dataframe from results
             landmarks = create_frame_landmark_df(results,frame,xyz)
             # all_landmarks.append(landmarks)
-            
-            # TODO: figure out we capture data of no.of frames and only then pass it to prediction function
-            
-
-            ## combines landmarks dataframe for prediction
             all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
             text = prediction_func(all_landmarks)
-            
-            ## draw is used to display out the predictions
             draw_predictions(image,text)
 
         
@@ -154,7 +146,7 @@ def do_capture_loop(xyz,pq_file=None):
             if cv2.waitKey(5) & 0xFF == 27:
                 break
     # cap.release()
-    return text
+    return pd.concat(all_landmarks).reset_index(drop=True), text
 def draw_predictions(image,text):
     # Reading an image in default mode
     # image = cv2.imread(path)
@@ -183,7 +175,7 @@ def draw_predictions(image,text):
     
 
 if __name__ == "__main__":
-    pq_file_sample = "src/data/100015657.parquet"
+    pq_file_sample = "train_landmark_files/16069/100015657.parquet"
     xyz = pd.read_parquet(pq_file_sample)
     # pq_file = pd.read_parquet('output.parquet')
 
