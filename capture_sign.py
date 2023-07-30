@@ -175,10 +175,11 @@ def draw_predictions(image,text):
 if __name__ == "__main__":
     pq_file_sample = "train_landmark_files/16069/100015657.parquet"
     xyz = pd.read_parquet(pq_file_sample)
-    # pq_file = pd.read_parquet('output.parquet')
+    pq_file = pd.read_parquet('output.parquet')
 
     landmarks = do_capture_loop(xyz)
     pd.concat(landmarks).reset_index(drop=True).to_parquet('output.parquet')
+
     
     
     
