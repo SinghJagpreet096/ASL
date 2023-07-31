@@ -161,7 +161,7 @@ def do_capture_loop(xyz,pq_file=None):
             #     draw_predictions(image,text=sign)
             #     continue
 
-            cv2.imshow('MediaPipe Holistic',image)# cv2.flip(image, 1))
+            cv2.imshow('GROOT',image)# cv2.flip(image, 1))
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break
