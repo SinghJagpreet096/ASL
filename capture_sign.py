@@ -20,6 +20,10 @@ prediction_fn = interpreter.get_signature_runner("serving_default")
 train = pd.read_csv('src/data/train.csv.zip')
 train['sign_ord'] = train['sign'].astype('category').cat.codes
 
+## sample parquet
+pq_file_sample = "src/data/100015657.parquet"
+xyz = pd.read_parquet(pq_file_sample)
+
 ROWS_PER_FRAME = 543  # number of landmarks per frame
 
 
@@ -75,15 +79,18 @@ def load_relevant_data_subset(data):
 
 def prediction_func(data):
 
+
     # Dictionaries to translate sign <-> ordinal encoded sign
     SIGN2ORD = train[['sign', 'sign_ord']].set_index('sign').squeeze().to_dict()
     ORD2SIGN = train[['sign_ord', 'sign']].set_index('sign_ord').squeeze().to_dict()
 
-    ## preprocessing of data for the model
+    ## load data from output parquet
     xyz_np = load_relevant_data_subset(data)
     prediction = prediction_fn(inputs=xyz_np)
-    sign = prediction['outputs'].argmax()
-    return ORD2SIGN[sign]
+    pred = prediction['outputs'].argmax()
+    prediction_confidence = prediction['outputs'][pred]
+    sign = ORD2SIGN[pred]
+    return sign, prediction_confidence
 
 
 
@@ -111,18 +118,20 @@ def do_capture_loop(xyz,pq_file=None):
 
         ## create landmarks dataframe from results
             landmarks = create_frame_landmark_df(results,frame,xyz)
-            # all_landmarks.append(landmarks)
+            # if landmarks['type']=
             
-            # TODO: figure out we capture data of no.of frames and only then pass it to prediction function
-            
+            # combines dataframe to be passed to prediction func
 
-            ## combines landmarks dataframe for prediction
+
+            # TODO: find a way to pass a no. frame only for prediction and then do a refresh
             all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
-            text = prediction_func(all_landmarks)
+            if results.left_hand_landmarks or results.right_hand_landmarks:
+                sign, confidence = prediction_func(all_landmarks)
+                # if confidence > 10:
+                draw_predictions(image,text=sign)
+                    # pass
+                pass
             
-            ## draw is used to display out the predictions
-            draw_predictions(image,text)
-
         
         # Draw landmark annotation on the image.
             image.flags.writeable = True
@@ -148,13 +157,16 @@ def do_capture_loop(xyz,pq_file=None):
             # draw_predictions(image,text)
             # cv2.rectangle(frame, (x, y - text_height - 5), (x + text_width, y), (0, 0, 0), -1)
             # cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # if confidence > 90:
+            #     draw_predictions(image,text=sign)
+            #     continue
 
             cv2.imshow('MediaPipe Holistic',image)# cv2.flip(image, 1))
 
-            if cv2.waitKey(5) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == 27:
                 break
-    # cap.release()
-    return text
+    
+    
 def draw_predictions(image,text):
     # Reading an image in default mode
     # image = cv2.imread(path)
@@ -187,19 +199,8 @@ if __name__ == "__main__":
     xyz = pd.read_parquet(pq_file_sample)
     # pq_file = pd.read_parquet('output.parquet')
 
-    data, text= do_capture_loop(xyz)
-    print(text)
+    do_capture_loop(xyz)
     
-    # text = prediction_func(data)
-    # draw_predictions(image=image,text=text)
-
-    # pd.concat(landmarks).reset_index(drop=True).to_parquet('output.parquet')
-
-
-    
-    
-    
-    # print(prediction_func('output.parquet'))
 
     
 

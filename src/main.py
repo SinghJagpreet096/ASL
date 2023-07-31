@@ -118,15 +118,20 @@ def do_capture_loop(xyz,pq_file=None):
 
         ## create landmarks dataframe from results
             landmarks = create_frame_landmark_df(results,frame,xyz)
+            # if landmarks['type']=
             
             # combines dataframe to be passed to prediction func
 
 
             # TODO: find a way to pass a no. frame only for prediction and then do a refresh
             all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
-            sign, confidence = prediction_func(all_landmarks)
-            draw_predictions(image,text = f"{sign} confidence:{confidence}")
-
+            if results.left_hand_landmarks or results.right_hand_landmarks:
+                sign, confidence = prediction_func(all_landmarks)
+                # if confidence > 10:
+                draw_predictions(image,text=sign)
+                    # pass
+                pass
+            
         
         # Draw landmark annotation on the image.
             image.flags.writeable = True
@@ -152,17 +157,16 @@ def do_capture_loop(xyz,pq_file=None):
             # draw_predictions(image,text)
             # cv2.rectangle(frame, (x, y - text_height - 5), (x + text_width, y), (0, 0, 0), -1)
             # cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # if confidence > 90:
+            #     draw_predictions(image,text=sign)
+            #     continue
 
             cv2.imshow('MediaPipe Holistic',image)# cv2.flip(image, 1))
 
-            if cv2.waitKey(5) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == 27:
                 break
-    # cap.release()
-    return sign,confidence
-
-
-
-    # 
+    
+    
 def draw_predictions(image,text):
     # Reading an image in default mode
     # image = cv2.imread(path)

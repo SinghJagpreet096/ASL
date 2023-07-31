@@ -1,3 +1,6 @@
+## version 2: 
+- the model only show predictions of if hands are detected
+
 # excecution of the application
 - NOTE: all the relevent files are in "src" dir.
 - clone this repo
@@ -13,3 +16,7 @@
 - The model is trained on data with 250 classes (Gestures).
 - Its is Tensor Flow lite model (TFLite), specially designed for smaller devices like mobile phones etc.
 - 
+
+
+## version 2: 
+- the model only show predictions of if hands are detected
