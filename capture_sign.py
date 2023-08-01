@@ -126,7 +126,7 @@ def do_capture_loop(xyz,pq_file=None):
 
             if results.left_hand_landmarks or results.right_hand_landmarks:
                 sign, confidence = prediction_func(all_landmarks)
-                if confidence > 0.05:
+                if confidence > 0.01:
                     draw_predictions(image,text=f"{sign}:{str(confidence)}")
                     # pass
                 pass
@@ -160,7 +160,7 @@ def do_capture_loop(xyz,pq_file=None):
             #     draw_predictions(image,text=sign)
             #     continue
 
-            cv2.imshow('MediaPipe Holistic',image)# cv2.flip(image, 1))
+            cv2.imshow('GROOT',image)# cv2.flip(image, 1))
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break

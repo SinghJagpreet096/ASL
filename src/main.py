@@ -110,45 +110,44 @@ def do_capture_loop(xyz,pq_file=None):
                 # If loading a video, use 'break' instead of 'continue'.
                 continue
 
-        # To improve performance, optionally mark the image as not writeable to
-        # pass by reference.
+            # To improve performance, optionally mark the image as not writeable to
+            # pass by reference.
             image.flags.writeable = False
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             results = holistic.process(image)
+            image = cv2.flip(image,1)
 
-        ## create landmarks dataframe from results
+            ## create landmarks dataframe from results
             landmarks = create_frame_landmark_df(results,frame,xyz)
-            # if landmarks['type']=
-            
-            # combines dataframe to be passed to prediction func
 
+            ## collects 5 frames and then passes for prediction
+            for i in range(5):
+                all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
 
-            # TODO: find a way to pass a no. frame only for prediction and then do a refresh
-            all_landmarks = pd.concat([landmarks]).reset_index(drop=True)
             if results.left_hand_landmarks or results.right_hand_landmarks:
                 sign, confidence = prediction_func(all_landmarks)
-                # if confidence > 10:
-                draw_predictions(image,text=sign)
+                if confidence > 0.01:
+                    draw_predictions(image,text=f"{sign}:{str(confidence)}")
                     # pass
                 pass
             
-        
-        # Draw landmark annotation on the image.
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            mp_drawing.draw_landmarks(
-                image,
-                results.face_landmarks,
-                mp_holistic.FACEMESH_CONTOURS,
-                landmark_drawing_spec=None,
-                connection_drawing_spec=mp_drawing_styles
-                .get_default_face_mesh_contours_style())
-            mp_drawing.draw_landmarks(
-                image,
-                results.pose_landmarks,
-                mp_holistic.POSE_CONNECTIONS,
-                landmark_drawing_spec=mp_drawing_styles
-                .get_default_pose_landmarks_style())
+            # Draw landmark annotation on the image.
+            
+            # mp_drawing.draw_landmarks(
+            #     image,
+            #     results.face_landmarks,
+            #     mp_holistic.FACEMESH_CONTOURS,
+            #     landmark_drawing_spec=None,
+            #     connection_drawing_spec=mp_drawing_styles
+            #     .get_default_face_mesh_contours_style())
+            # mp_drawing.draw_landmarks(
+            #     image,
+            #     results.pose_landmarks,
+            #     mp_holistic.POSE_CONNECTIONS,
+            #     landmark_drawing_spec=mp_drawing_styles
+            #     .get_default_pose_landmarks_style())
             #Flip the image horizontally for a selfie-view display.
             
             # text = prediction_func(pq_file)
@@ -165,6 +164,7 @@ def do_capture_loop(xyz,pq_file=None):
 
             if cv2.waitKey(1) & 0xFF == 27:
                 break
+        cap.release()        
     
     
 def draw_predictions(image,text):
