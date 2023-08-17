@@ -1,24 +1,65 @@
-## NOTE: DO NOT MAKE CHANGES TO b3_js BRANCH
+# Hand Sign Detection using TensorFlow Lite and Flask
 
-## version 2: 
-- the model only show predictions of if hands are detected
+This project demonstrates hand sign detection using TensorFlow Lite and Flask. It captures video frames, performs hand sign detection using a pre-trained TensorFlow Lite model, adds a unique number to the frame, and displays the processed frames in a web interface using Flask.
 
-# excecution of the application
-- NOTE: all the relevent files are in "src" dir.
-- clone this repo
-- create a venv 
-- install all the dependencies by running the following cmd in terminal.
-        - $ pip install req.txt
-- RUN the python script - capture_sign.py
+## Features
+
+- Capture video frames and perform hand sign detection.
+- Display processed frames in a web interface using Flask.
+- Add unique identifiers to each processed frame.
+- Store processed frames on the server.
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10 
+- Virtualenv (optional but recommended)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/hand-sign-detection.git
+   cd hand-sign-detection
+   ```
+
+2. (Optional) Create and activate a virtual environment:
+
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3. Install the required dependencies from requirements.txt:
+
+    ```bash
+    Copy code
+    pip install -r requirements.txt
+    ```
+
+### Running the Application
+
+1. Start the Flask application:
+
+```bash
+python app.py
+```
+
+2. Open your web browser and navigate to http://127.0.0.1:5000 to access the web interface.
+
+3. Follow the instructions on the web interface to capture and process hand sign frames.
+
+### Usage
+- Follow the on-screen instructions to capture video frames.
+- The processed frames will be displayed with unique numbers added.
+- You can view the stored processed frames in the processed_frames folder.
 
 
+### Contributing
+Contributions are welcome! If you'd like to contribute to this project, please follow the guidelines in CONTRIBUTING.md.
 
-# SIGN TO TEXT
+### License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- The model is trained on data with 250 classes (Gestures).
-- Its is Tensor Flow lite model (TFLite), specially designed for smaller devices like mobile phones etc.
-- 
-
-
-## version 2: 
-- the model only show predictions of if hands are detected
