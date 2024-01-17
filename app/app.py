@@ -50,8 +50,8 @@ def predict_frame(frames):
     sign = model.predict(all_landmarks)
 
     timestamp = int(time.time())
-    if not sign:
-        sign = "unknown"
+    # if not sign:
+    #     sign = "unknown"
     response = {
         "prediction": sign,
         "timestamp": timestamp,
@@ -106,7 +106,8 @@ def process_frame(data):
             user_info["frames"] = []
             logger.info(f"Frame processed successfully with unique frame number: {user_sid}, result: {result}")
             # Emit the frame_processed event only to the same client
-            emit("frame_processed", result, room=user_sid) # Emit to the specific client
+            if result['prediction']:
+                emit("frame_processed", result, room=user_sid) # Emit to the specific client
         logger.info(f"frame count {user_sid} +++ {len(user_info['frames'])}")
 
 
